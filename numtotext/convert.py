@@ -1,8 +1,10 @@
 from math import log10
+from typing import Type
+from .languages.base import NumbersBase
 from .languages.en import Numbers_EN
 
 
-def int_to_words(n: int, numbers=Numbers_EN):
+def int_to_words(n: int, numbers: Type[NumbersBase] = Numbers_EN) -> str:
     n = int(n)
     if n == 0:
         # ZERO is special case
@@ -44,7 +46,7 @@ def int_to_words(n: int, numbers=Numbers_EN):
     return "".join(text[:-1]).strip()
 
 
-def float_to_words(n: float, precision=10, numbers=Numbers_EN):
+def float_to_words(n: float, precision: int = 10, numbers: Type[NumbersBase] = Numbers_EN) -> str:
     n = float(n)
     if n == 0:
         # ZERO is special case
