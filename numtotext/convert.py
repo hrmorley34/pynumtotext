@@ -17,6 +17,7 @@ def int_to_words(n: int, numbers: Type[NumbersBase] = Numbers_EN) -> str:
         # no 'minus' prefix
         text = []
 
+    lastsize = None
     # check for presence of largest part, then smaller
     # (check for thousands, then hundreds, ..., 19 before 10, down to 1)
     for size, word in sorted(numbers.NUMBERS.items(), reverse=True):
@@ -32,18 +33,29 @@ def int_to_words(n: int, numbers: Type[NumbersBase] = Numbers_EN) -> str:
         if part < 1:
             # No number in this part (go check a smaller part)
             continue
-        elif part != 1 or size >= numbers.ONE_THRESHOLD:
+
+        # No join for first part (no previous size)
+        if lastsize is not None:
+            # Fetch join between previous and next part
+            k = int(log10(lastsize))
+            # 10_000 -> 10 would include 4,3,2 (not 1)
+            for i in range(int(log10(lastsize)), int(log10(size)), -1):
+                if i in numbers.JOINS:
+                    # if the join exists, use it, otherwise check for lower joins
+                    k = i
+                    break
+            text.append(numbers.JOINS.get(k, " "))
+
+        if part != 1 or size >= numbers.ONE_THRESHOLD:
             # Add a prefix ([three] hundred; [one] thousand)
             # Recalculate sub-part (e.g. 123000 -> [one hundred and twenty-three] thousand)
             text.append(int_to_words(part, numbers=numbers))
             text.append(numbers.COUNT_JOIN)
         text.append(word)
 
-        # Fetch join to next part
-        text.append(numbers.JOINS.get(int(log10(size)), " "))
+        lastsize = size
 
-    # ignore last join e.g. "one hundred [and]" or "sixty[-]" when nothing after
-    return "".join(text[:-1]).strip()
+    return "".join(text).strip()
 
 
 def float_to_words(n: float, precision: int = 10, numbers: Type[NumbersBase] = Numbers_EN) -> str:
